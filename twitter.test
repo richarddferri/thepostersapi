@@ -1,0 +1,2 @@
+curl -H "Content-Type: application/json" -X POST -d '{"hashes":["#richolgawedding","#richolgawedding2013","#olgaparents
+"]}' http://white-harbor-rails-77074.use1.nitrousbox.com:8080/theposters/twitter   

@@ -1,0 +1,2 @@
+curl -X POST -H "Content-Type:application/json" -d '{ "hashes" :[ "#richolgawedding","#richolgawedding
+2013" , "#olgaparents","#derekjeter" ] }' -H "Content-Type: application/json" http://white-harbor-rails-77074.use1.nitrousbox.com:8080/theposters/socialmedia 
