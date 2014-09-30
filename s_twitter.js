@@ -23,7 +23,7 @@ exports.search=function( cnt , hashtag  )
    var deferred = Q.defer();
     T.get('search/tweets', { q:  hashtag , count: cnt }, function(err, data, response) {
        
-        console.log('search --> pushed data '+hashtag);
+        console.log('twitter search --> pushed data '+hashtag);
         
         deferred.resolve(data);
     });
@@ -95,16 +95,14 @@ exports.transform_tweets=function(hashtags,tweet)
           });
          if(tweet.entities.hashtags)
            {
-             tweet.entities.hashtags.forEach(function(hashtag){
-               console.log("#");
-              console.log(hashtag.text);
+             tweet.entities.hashtags.forEach(function(hashtag){ 
+             
                var reformatted_hash = exports.reformatHash(hashtag.text);
-                console.log(reformatted_hash);
+                
                if(reformatted_hash && reformatted_hash.length >0)
-                 {
-                   console.log("PUSHING");
+                 { 
                     json_obj.hashtags.push(  reformatted_hash );
-                   console.log("PUSHED");
+                   
                  }
                 
              });
@@ -133,14 +131,10 @@ exports.search_multiple=function(cnt, hashtags)
       Q.all(queue_of_tasks).then(function(ful){ 
           if(ful)
           {
-      console.log("****************************************************");
-      console.log(JSON.stringify(ful));
-      console.log("****************************************************");
-            console.log("Fullfilled "+ful.length+" promises.");  
+  
             ful.forEach(function(tweet){
               if(tweet.statuses)
-                {
-                 // console.log(JSON.stringify(tweet));
+                { 
                       tweet.statuses.forEach(function(status){ 
                          queue_of_parse_tasks.push(  exports.transform_tweets(hashtags,status)  );
                       }); 
@@ -153,7 +147,7 @@ exports.search_multiple=function(cnt, hashtags)
           } 
           else
           {
-              console.log("Must expand to search mongo.");
+            console.log("Twitter : Must expand to search mongo.");
           }
       });
     }
