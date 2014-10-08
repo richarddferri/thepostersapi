@@ -11,7 +11,7 @@ var application_context='/theposters';
 //port to bind to for this application
 var port = process.env.PORT || 8080; 		// set our port
 
- 
+
 
 // configure app to use bodyParser()
 // this will let us get the data from a POST
@@ -96,6 +96,7 @@ rank = function(conf_obj)
         }
         if(tweet.hashtags)
         { 
+          
           tweet.ranking=tweet.ranking+(LOAD_WEIGHT_HASHTAG*tweet.hashtags.length);   
         } 
         rank_value_date--;
@@ -141,7 +142,7 @@ var router = express.Router(); 				// get an instance of the express Router
 
 // test route to make sure everything is working (accessed at GET http://localhost:8080/api)
 router.get('/', function(req, res) {
-	res.json({ message: ' welcome to '+application_context+' root api!' });	
+	res.jsonp({ message: ' welcome to '+application_context+' root api!' });	
 });
 
 router.get('/socialmedia/:hashes', function(req,res){
@@ -163,7 +164,7 @@ router.get('/socialmedia/:hashes', function(req,res){
      //search social media
     search_social_media(100,hashes_).then(function(full_data){
             console.log("Promises fulfilled -- twitter/instagram");
-          res.json(full_data);//return all data
+          res.jsonp(full_data);//return all data
     });
   }
   else {
