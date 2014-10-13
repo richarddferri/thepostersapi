@@ -29,6 +29,51 @@ exports.search=function( cnt , hashtag  )
     });
     return  deferred.promise;
 }
+exports.transform_hashtags=function(tweet,json_obj)
+{
+    var deferred = Q.defer(); 
+    if(json_obj && tweet)
+      {
+        if(tweet.entities.hashtags)
+           {
+             console.log("Twitter hashtag count is "+tweet.entities.hashtags.length);
+             console.log("TWEET.ENTITIES.HASHTAGS "+JSON.stringify(tweet.entities.hashtags));
+             tweet.entities.hashtags.forEach(function(hashtag){
+               console.log("each entity "+JSON.stringify(hashtag));
+               var reformatted_hash = exports.reformatHash(hashtag.text);
+               console.log("Reformatted Entity is "+reformatted_hash+ " pushing...");
+                json_obj.hashtags.push(  reformatted_hash );
+               console.log("Json Array is "+JSON.stringify(json_obj.hashtags));
+             });
+              
+             
+             
+//              tweet.entities.hashtags.forEach(function(hashtag_){ 
+             
+               
+//                 console.log("reformatted_hash ==>"+reformatted_hash);
+//                if(reformatted_hash && reformatted_hash.length >0)
+//                  { 
+//                    console.log("pushed");
+                   
+//                    console.log(JSON.stringify(json_obj.hashtags));
+                   
+//                  }
+//                 else{
+//                   console.log("Reformatted hash is "+reformatted_hash);
+//                 }
+//              });
+           }
+           else
+           {
+             console.log("No Twitter Hashtags are found.");
+           }
+      }
+    else{
+      deferred.resolve(json_obj);
+    }
+  return deferred.promise;
+}
 exports.transform_tweets=function(hashtags,tweet)
 {
   
@@ -37,7 +82,8 @@ exports.transform_tweets=function(hashtags,tweet)
   var used_hashtags =[];
   
   var deferred = Q.defer(); 
-  
+  var queue_of_tasks = [];
+
   if(tweet)
   { 
       json_obj.gen_url="https://twitter.com/"+tweet.user.screen_name+"/status/"+tweet.id_str ;
@@ -53,13 +99,21 @@ exports.transform_tweets=function(hashtags,tweet)
       json_obj.hashtags = used_hashtags;
       json_obj.type='twitter.search';
       json_obj.media=media_array;
+      if(tweet.entities.hashtags)
+       {
+             tweet.entities.hashtags.forEach(function(hashtag){
+               json_obj.hashtags.push(exports.reformatHash(hashtag.text));
+             }); 
+       }    
        if( tweet.entities.media )
        {
-          tweet.entities.media.forEach(function(media_item){
+        
+               tweet.entities.media.forEach(function(media_item){
                   var media_item_={};
                   media_item_.social_url=media_item.url;
                   media_item_.image_url=media_item.media_url;
                   media_item_.image_url_https=media_item.media_url_https; 
+             
                 if(media_item.sizes)
                 {
                        if(media_item.sizes.small)
@@ -92,21 +146,9 @@ exports.transform_tweets=function(hashtags,tweet)
                          }                  
                 } 
                  json_obj.media.push(media_item_);
-          });
-         if(tweet.entities.hashtags)
-           {
-             tweet.entities.hashtags.forEach(function(hashtag){ 
-             
-               var reformatted_hash = exports.reformatHash(hashtag.text);
-                
-               if(reformatted_hash && reformatted_hash.length >0)
-                 { 
-                    json_obj.hashtags.push(  reformatted_hash );
-                   
-                 }
-                
-             });
-           }
+          }); 
+          
+        
        }
       deferred.resolve(json_obj);
   }

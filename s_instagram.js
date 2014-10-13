@@ -19,7 +19,7 @@ exports.search_ig=function( cnt , hashtag  )
 {
   
   var reformatted_hashtag_  = exports.reformatHashIg(hashtag);
-  console.log("INSTAGRAM HASHTAG is "+hashtag+","+reformatted_hashtag_);
+  
    var deferred = Q.defer();
     ig.tag_media_recent(reformatted_hashtag_, function(err, medias, pagination, remaining, limit) { 
       console.log("IG:"+err);
@@ -39,7 +39,7 @@ exports.search_ig=function( cnt , hashtag  )
 }
 exports.transform_ig=function(hashtags,post)
 {
-  console.log("transform_ig");
+   
   var json_obj = {};
   var media_array=[];
   var used_hashtags =[];
@@ -47,11 +47,9 @@ exports.transform_ig=function(hashtags,post)
   var deferred = Q.defer(); 
   
   if(post)
-  {  
-    console.log(JSON.stringify(post));
+  {   
        
-          console.log(".");
-          json_obj.gen_url= post.link; 
+           json_obj.gen_url= post.link; 
           if(post.created_time)
           {
               json_obj.created_at=new Date(post.created_time*1000);
@@ -74,6 +72,13 @@ exports.transform_ig=function(hashtags,post)
           }
           json_obj.hashtags = used_hashtags;
           json_obj.media=media_array;
+        if(post.tags)
+         {    
+           post.tags.forEach(function(tag_){
+               json_obj.hashtags.push(tag_);
+           });
+                            
+          }    
           if(post.images)
           { 
                   var media_item_={};
@@ -85,40 +90,23 @@ exports.transform_ig=function(hashtags,post)
                            media_item_.small_image_width=post.images.low_resolution.width;
                            media_item_.small_image_height=post.images.low_resolution.height;
                          }
-//                         if(media_item.sizes.medium)
-//                          {
-//                            media_item_.medium_image_url=media_item.media_url+":medium";
-//                            media_item_.medium_image_url_https=media_item.media_url_https+":medium";
-//                            media_item_.medium_image_width=media_item.sizes.medium.w;
-//                            media_item_.medium_image_height=media_item.sizes.medium.h;
-//                          }
                         if(post.images.standard_resolution)
                          {
                           
                            media_item_.large_image_url=post.images.standard_resolution.url;
-//                            media_item_.small_image_url_https=media_item.media_url_https+":small";
-                           media_item_.large_image_width=post.images.standard_resolution.width;
+                            media_item_.large_image_width=post.images.standard_resolution.width;
                            media_item_.large_image_height=post.images.standard_resolution.height;
                          }
                         if(post.images.thumbnail)
                          {
                             media_item_.thumb_image_url=post.images.thumbnail.url;
-//                            media_item_.small_image_url_https=media_item.media_url_https+":small";
-                           media_item_.thumb_image_width=post.images.thumbnail.width;
+                            media_item_.thumb_image_width=post.images.thumbnail.width;
                            media_item_.thumb_image_height=post.images.thumbnail.height
                          } 
                           json_obj.media.push(media_item_);
-                          if(post.tags)
-                          {
-                            post.tags.forEach(function(hashtag){
-                                    var reformatted_hash = exports.reformatHashIg(hashtag); 
-                                    if(reformatted_hash && reformatted_hash.length >0)
-                                    { 
-                                        json_obj.hashtags.push(  reformatted_hash ); 
-                                    }                      
-                            });
-                          }
-          } 
+           
+                          
+            } 
       deferred.resolve(json_obj);
   
     } 

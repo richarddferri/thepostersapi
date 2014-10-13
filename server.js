@@ -8,6 +8,7 @@ var s_twitter = require('./s_twitter');
 var s_instagram = require('./s_instagram');
 //application context to use in this application
 var application_context='/theposters';
+var _ = require("underscore");
 //port to bind to for this application
 var port = process.env.PORT || 8080; 		// set our port
 
@@ -16,7 +17,7 @@ var port = process.env.PORT || 8080; 		// set our port
 // configure app to use bodyParser()
 // this will let us get the data from a POST
 app.use(bodyParser.urlencoded({ extended: true }));
- 
+app.enable("jsonp callback"); 
 findHashesInRequestCount= function(requested_hashes, response_hashes)
 {
    var deferred = Q.defer();
@@ -57,7 +58,13 @@ rank = function(conf_obj)
   var data=conf_obj.data;
   var date_sort_asc = conf_obj.date_sort_asc;
   var rank_sort_asc = conf_obj.rank_sort_asc;
-  var hashtag_array = conf_obj.hashtags;
+  var hashtag_array = [] ;
+  if(conf_obj.hashtags){ 
+      conf_obj.hashtags.forEach(function(tag){ 
+        hashtag_array.push(s_twitter.reformatHash(tag));
+      });  
+  }
+  
    console.log("hashtag array "+hashtag_array);
    var deferred = Q.defer();//promise to return all data.
    if(data.length>0 && (!data[0].gen_url))
@@ -79,7 +86,7 @@ rank = function(conf_obj)
                                  } 
                                  return d2-d1;
                             });
-  var  LOAD_WEIGHT_HASHTAG = 1000;
+  var LOAD_WEIGHT_HASHTAG = 10000000000000;
   var LOAD_WEIGHT_MEDIA= 10000000000;
   var LOAD_WEIGHT_TEXT=  100000000;
   var rank_value_date=data.length;
@@ -94,10 +101,13 @@ rank = function(conf_obj)
         {  
            tweet.ranking=tweet.ranking+(LOAD_WEIGHT_MEDIA*tweet.media.length );
         }
-        if(tweet.hashtags)
+        if(tweet.hashtags && hashtag_array)
         { 
-          
-          tweet.ranking=tweet.ranking+(LOAD_WEIGHT_HASHTAG*tweet.hashtags.length);   
+       
+          var intersection_ = _.intersection(tweet.hashtags,hashtag_array);
+          console.log("Intersection is "+JSON.stringify(intersection_)+" FROM "+JSON.stringify(tweet.hashtags)+" vs. "+JSON.stringify(hashtag_array));
+          tweet.matching_hashtags=intersection_; 
+          tweet.ranking=tweet.ranking+(LOAD_WEIGHT_HASHTAG*tweet.matching_hashtags.length);   
         } 
         rank_value_date--;
   });
@@ -129,6 +139,7 @@ search_social_media = function(count_, hashes_)
                                    
                                  });
                             var conf_obj = {data: media_item_array_ , date_sort_asc: false,  hashtags: hashes_, rank_sort_asc: false};
+         
                             rank(conf_obj).then(function(data_ranked){ 
                               deferred.resolve(media_item_array_); 
                            }); 
